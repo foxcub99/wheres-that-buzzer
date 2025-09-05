@@ -8,10 +8,30 @@
     <h1>Controller Status</h1>
     <p>Controller ID: {{ controller_id }}</p>
     <h2>Input State</h2>
-    <ul>
-        {% for button, pressed in input_state['buttons'].items() %}
-        <li>{{ button }}: {{ 'Pressed' if pressed else 'Released' }}</li>
-        {% endfor %}
-    </ul>
+    <div id="input-state">
+        <!-- Device/button states will be rendered here -->
+    </div>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script>
+    const inputStateDiv = document.getElementById('input-state');
+    function renderInputState(input_state) {
+        let html = '';
+        for (const device in input_state) {
+            html += `<h3>${device}</h3><ul>`;
+            for (const button in input_state[device]) {
+                const pressed = input_state[device][button];
+                html += `<li>${button}: <strong>${pressed ? 'Pressed' : 'Released'}</strong></li>`;
+            }
+            html += '</ul>';
+        }
+        inputStateDiv.innerHTML = html;
+    }
+    const socket = io();
+    socket.on('input_update', function(data) {
+        renderInputState(data.input_state);
+    });
+    // Initial render from server-side context
+    renderInputState({{ input_state|tojson }});
+    </script>
 </body>
 </html>
