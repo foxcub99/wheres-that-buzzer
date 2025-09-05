@@ -7,6 +7,10 @@
 <body>
     <h1>Controller Status</h1>
     <p>Controller ID: {{ controller_id }}</p>
+    <h2>Keyboard Visual</h2>
+    <div style="width:1200px; margin:auto;">
+        <object id="keyboard-svg" type="image/svg+xml" data="/static/keyboard.svg" width="1200" height="400"></object>
+    </div>
     <h2>Input State</h2>
     <div id="input-state">
         <!-- Device/button states will be rendered here -->
@@ -27,11 +31,103 @@
         inputStateDiv.innerHTML = html;
     }
     const socket = io();
+    function highlightKeyboardKeys(input_state) {
+        const svgObj = document.getElementById('keyboard-svg');
+        if (!svgObj || !svgObj.contentDocument) return;
+        const svg = svgObj.contentDocument;
+        // List of all key IDs in the SVG
+        const keyIds = [
+            'Escape','F1','F2','F3','F4','F5','F6','F7','F8','F9','F10','F11','F12',
+            'Backquote','Digit1','Digit2','Digit3','Digit4','Digit5','Digit6','Digit7','Digit8','Digit9','Digit0','Minus','Equal','Backspace',
+            'Tab','KeyQ','KeyW','KeyE','KeyR','KeyT','KeyY','KeyU','KeyI','KeyO','KeyP','BracketLeft','BracketRight','Backslash',
+            'CapsLock','KeyA','KeyS','KeyD','KeyF','KeyG','KeyH','KeyJ','KeyK','KeyL','Semicolon','Quote','Enter',
+            'ShiftLeft','KeyZ','KeyX','KeyC','KeyV','KeyB','KeyN','KeyM','Comma','Period','Slash','ShiftRight',
+            'ControlLeft','MetaLeft','AltLeft','Space','AltRight','MetaRight','ContextMenu','ControlRight',
+            'ArrowUp','ArrowLeft','ArrowDown','ArrowRight'
+        ];
+        keyIds.forEach(id => {
+            const el = svg.getElementById(id);
+            if (el) el.setAttribute('fill', '#ccc');
+        });
+        // Highlight pressed keys
+        if (input_state.keyboard) {
+            for (const key in input_state.keyboard) {
+                if (input_state.keyboard[key]) {
+                    // Try to map key to SVG id
+                    let svgId = null;
+                    // Handle pynput special keys (e.g., Key.space, Key.tab, Key.shift, etc.)
+                    if (key.startsWith('Key.')) {
+                        const special = key.slice(4);
+                        if (special === 'space') svgId = 'Space';
+                        else if (special === 'tab') svgId = 'Tab';
+                        else if (special === 'shift') svgId = 'ShiftLeft';
+                        else if (special === 'shift_r') svgId = 'ShiftRight';
+                        else if (special === 'ctrl') svgId = 'ControlLeft';
+                        else if (special === 'ctrl_r') svgId = 'ControlRight';
+                        else if (special === 'alt') svgId = 'AltLeft';
+                        else if (special === 'alt_r') svgId = 'AltRight';
+                        else if (special === 'cmd') svgId = 'MetaLeft';
+                        else if (special === 'cmd_r') svgId = 'MetaRight';
+                        else if (special === 'enter') svgId = 'Enter';
+                        else if (special === 'backspace') svgId = 'Backspace';
+                        else if (special === 'caps_lock') svgId = 'CapsLock';
+                        else if (special === 'esc') svgId = 'Escape';
+                        else if (special === 'up') svgId = 'ArrowUp';
+                        else if (special === 'down') svgId = 'ArrowDown';
+                        else if (special === 'left') svgId = 'ArrowLeft';
+                        else if (special === 'right') svgId = 'ArrowRight';
+                        // Add more as needed
+                    } else {
+                        if (/^[a-zA-Z]$/.test(key)) svgId = 'Key' + key.toUpperCase();
+                        else if (/^[0-9]$/.test(key)) svgId = 'Digit' + key;
+                        else if (key === '`') svgId = 'Backquote';
+                        else if (key === '-') svgId = 'Minus';
+                        else if (key === '=') svgId = 'Equal';
+                        else if (key === 'Tab') svgId = 'Tab';
+                        else if (key === 'Backspace') svgId = 'Backspace';
+                        else if (key === '[') svgId = 'BracketLeft';
+                        else if (key === ']') svgId = 'BracketRight';
+                        else if (key === '\\') svgId = 'Backslash';
+                        else if (key === 'CapsLock') svgId = 'CapsLock';
+                        else if (key === ';') svgId = 'Semicolon';
+                        else if (key === "'") svgId = 'Quote';
+                        else if (key === 'Enter') svgId = 'Enter';
+                        else if (key === 'Shift') svgId = 'ShiftLeft';
+                        else if (key === 'ShiftRight') svgId = 'ShiftRight';
+                        else if (key === 'Control') svgId = 'ControlLeft';
+                        else if (key === 'ControlRight') svgId = 'ControlRight';
+                        else if (key === 'Alt') svgId = 'AltLeft';
+                        else if (key === 'AltRight') svgId = 'AltRight';
+                        else if (key === 'Meta') svgId = 'MetaLeft';
+                        else if (key === 'MetaRight') svgId = 'MetaRight';
+                        else if (key === 'ContextMenu') svgId = 'ContextMenu';
+                        else if (key === ' ') svgId = 'Space';
+                        else if (key === ',') svgId = 'Comma';
+                        else if (key === '.') svgId = 'Period';
+                        else if (key === '/') svgId = 'Slash';
+                        else if (key === 'ArrowUp') svgId = 'ArrowUp';
+                        else if (key === 'ArrowDown') svgId = 'ArrowDown';
+                        else if (key === 'ArrowLeft') svgId = 'ArrowLeft';
+                        else if (key === 'ArrowRight') svgId = 'ArrowRight';
+                        // Add more mappings as needed
+                    }
+                    if (svgId) {
+                        const el = svg.getElementById(svgId);
+                        if (el) el.setAttribute('fill', '#2a7ae2');
+                    }
+                }
+            }
+        }
+    }
     socket.on('input_update', function(data) {
         renderInputState(data.input_state);
+        highlightKeyboardKeys(data.input_state);
     });
     // Initial render from server-side context
     renderInputState({{ input_state|tojson }});
+    document.getElementById('keyboard-svg').addEventListener('load', function() {
+        highlightKeyboardKeys({{ input_state|tojson }});
+    });
     </script>
 </body>
 </html>

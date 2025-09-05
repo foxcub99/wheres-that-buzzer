@@ -1,0 +1,88 @@
+<svg width="1200" height="400" viewBox="0 0 1200 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Row 1: Esc, F1-F12 -->
+  <rect id="Escape" x="20" y="20" width="60" height="50" rx="7" fill="#ccc" />
+  <text x="50" y="55" font-size="24" text-anchor="middle" fill="#333">Esc</text>
+  <rect id="F1" x="100" y="20" width="50" height="50" rx="7" fill="#ccc" /><text x="125" y="55" font-size="20" text-anchor="middle" fill="#333">F1</text>
+  <rect id="F2" x="160" y="20" width="50" height="50" rx="7" fill="#ccc" /><text x="185" y="55" font-size="20" text-anchor="middle" fill="#333">F2</text>
+  <rect id="F3" x="220" y="20" width="50" height="50" rx="7" fill="#ccc" /><text x="245" y="55" font-size="20" text-anchor="middle" fill="#333">F3</text>
+  <rect id="F4" x="280" y="20" width="50" height="50" rx="7" fill="#ccc" /><text x="305" y="55" font-size="20" text-anchor="middle" fill="#333">F4</text>
+  <rect id="F5" x="340" y="20" width="50" height="50" rx="7" fill="#ccc" /><text x="365" y="55" font-size="20" text-anchor="middle" fill="#333">F5</text>
+  <rect id="F6" x="400" y="20" width="50" height="50" rx="7" fill="#ccc" /><text x="425" y="55" font-size="20" text-anchor="middle" fill="#333">F6</text>
+  <rect id="F7" x="460" y="20" width="50" height="50" rx="7" fill="#ccc" /><text x="485" y="55" font-size="20" text-anchor="middle" fill="#333">F7</text>
+  <rect id="F8" x="520" y="20" width="50" height="50" rx="7" fill="#ccc" /><text x="545" y="55" font-size="20" text-anchor="middle" fill="#333">F8</text>
+  <rect id="F9" x="580" y="20" width="50" height="50" rx="7" fill="#ccc" /><text x="605" y="55" font-size="20" text-anchor="middle" fill="#333">F9</text>
+  <rect id="F10" x="640" y="20" width="50" height="50" rx="7" fill="#ccc" /><text x="665" y="55" font-size="20" text-anchor="middle" fill="#333">F10</text>
+  <rect id="F11" x="700" y="20" width="50" height="50" rx="7" fill="#ccc" /><text x="725" y="55" font-size="20" text-anchor="middle" fill="#333">F11</text>
+  <rect id="F12" x="760" y="20" width="50" height="50" rx="7" fill="#ccc" /><text x="785" y="55" font-size="20" text-anchor="middle" fill="#333">F12</text>
+  <!-- Row 2: `1234567890-=[]\ -->
+  <rect id="Backquote" x="20" y="80" width="50" height="50" rx="7" fill="#ccc" /><text x="45" y="115" font-size="20" text-anchor="middle" fill="#333">`</text>
+  <rect id="Digit1" x="80" y="80" width="50" height="50" rx="7" fill="#ccc" /><text x="105" y="115" font-size="20" text-anchor="middle" fill="#333">1</text>
+  <rect id="Digit2" x="140" y="80" width="50" height="50" rx="7" fill="#ccc" /><text x="165" y="115" font-size="20" text-anchor="middle" fill="#333">2</text>
+  <rect id="Digit3" x="200" y="80" width="50" height="50" rx="7" fill="#ccc" /><text x="225" y="115" font-size="20" text-anchor="middle" fill="#333">3</text>
+  <rect id="Digit4" x="260" y="80" width="50" height="50" rx="7" fill="#ccc" /><text x="285" y="115" font-size="20" text-anchor="middle" fill="#333">4</text>
+  <rect id="Digit5" x="320" y="80" width="50" height="50" rx="7" fill="#ccc" /><text x="345" y="115" font-size="20" text-anchor="middle" fill="#333">5</text>
+  <rect id="Digit6" x="380" y="80" width="50" height="50" rx="7" fill="#ccc" /><text x="405" y="115" font-size="20" text-anchor="middle" fill="#333">6</text>
+  <rect id="Digit7" x="440" y="80" width="50" height="50" rx="7" fill="#ccc" /><text x="465" y="115" font-size="20" text-anchor="middle" fill="#333">7</text>
+  <rect id="Digit8" x="500" y="80" width="50" height="50" rx="7" fill="#ccc" /><text x="525" y="115" font-size="20" text-anchor="middle" fill="#333">8</text>
+  <rect id="Digit9" x="560" y="80" width="50" height="50" rx="7" fill="#ccc" /><text x="585" y="115" font-size="20" text-anchor="middle" fill="#333">9</text>
+  <rect id="Digit0" x="620" y="80" width="50" height="50" rx="7" fill="#ccc" /><text x="645" y="115" font-size="20" text-anchor="middle" fill="#333">0</text>
+  <rect id="Minus" x="680" y="80" width="50" height="50" rx="7" fill="#ccc" /><text x="705" y="115" font-size="20" text-anchor="middle" fill="#333">-</text>
+  <rect id="Equal" x="740" y="80" width="50" height="50" rx="7" fill="#ccc" /><text x="765" y="115" font-size="20" text-anchor="middle" fill="#333">=</text>
+  <rect id="Backspace" x="800" y="80" width="100" height="50" rx="7" fill="#ccc" /><text x="850" y="115" font-size="20" text-anchor="middle" fill="#333">Backspace</text>
+  <!-- Row 3: Tab QWERTYUIOP[]\ -->
+  <rect id="Tab" x="20" y="140" width="80" height="50" rx="7" fill="#ccc" /><text x="60" y="175" font-size="20" text-anchor="middle" fill="#333">Tab</text>
+  <rect id="KeyQ" x="110" y="140" width="50" height="50" rx="7" fill="#ccc" /><text x="135" y="175" font-size="20" text-anchor="middle" fill="#333">Q</text>
+  <rect id="KeyW" x="170" y="140" width="50" height="50" rx="7" fill="#ccc" /><text x="195" y="175" font-size="20" text-anchor="middle" fill="#333">W</text>
+  <rect id="KeyE" x="230" y="140" width="50" height="50" rx="7" fill="#ccc" /><text x="255" y="175" font-size="20" text-anchor="middle" fill="#333">E</text>
+  <rect id="KeyR" x="290" y="140" width="50" height="50" rx="7" fill="#ccc" /><text x="315" y="175" font-size="20" text-anchor="middle" fill="#333">R</text>
+  <rect id="KeyT" x="350" y="140" width="50" height="50" rx="7" fill="#ccc" /><text x="375" y="175" font-size="20" text-anchor="middle" fill="#333">T</text>
+  <rect id="KeyY" x="410" y="140" width="50" height="50" rx="7" fill="#ccc" /><text x="435" y="175" font-size="20" text-anchor="middle" fill="#333">Y</text>
+  <rect id="KeyU" x="470" y="140" width="50" height="50" rx="7" fill="#ccc" /><text x="495" y="175" font-size="20" text-anchor="middle" fill="#333">U</text>
+  <rect id="KeyI" x="530" y="140" width="50" height="50" rx="7" fill="#ccc" /><text x="555" y="175" font-size="20" text-anchor="middle" fill="#333">I</text>
+  <rect id="KeyO" x="590" y="140" width="50" height="50" rx="7" fill="#ccc" /><text x="615" y="175" font-size="20" text-anchor="middle" fill="#333">O</text>
+  <rect id="KeyP" x="650" y="140" width="50" height="50" rx="7" fill="#ccc" /><text x="675" y="175" font-size="20" text-anchor="middle" fill="#333">P</text>
+  <rect id="BracketLeft" x="710" y="140" width="50" height="50" rx="7" fill="#ccc" /><text x="735" y="175" font-size="20" text-anchor="middle" fill="#333">[</text>
+  <rect id="BracketRight" x="770" y="140" width="50" height="50" rx="7" fill="#ccc" /><text x="795" y="175" font-size="20" text-anchor="middle" fill="#333">]</text>
+  <rect id="Backslash" x="830" y="140" width="70" height="50" rx="7" fill="#ccc" /><text x="865" y="175" font-size="20" text-anchor="middle" fill="#333">\</text>
+  <!-- Row 4: CapsLock A S D F G H J K L ; ' Enter -->
+  <rect id="CapsLock" x="20" y="200" width="90" height="50" rx="7" fill="#ccc" /><text x="65" y="235" font-size="20" text-anchor="middle" fill="#333">Caps</text>
+  <rect id="KeyA" x="120" y="200" width="50" height="50" rx="7" fill="#ccc" /><text x="145" y="235" font-size="20" text-anchor="middle" fill="#333">A</text>
+  <rect id="KeyS" x="180" y="200" width="50" height="50" rx="7" fill="#ccc" /><text x="205" y="235" font-size="20" text-anchor="middle" fill="#333">S</text>
+  <rect id="KeyD" x="240" y="200" width="50" height="50" rx="7" fill="#ccc" /><text x="265" y="235" font-size="20" text-anchor="middle" fill="#333">D</text>
+  <rect id="KeyF" x="300" y="200" width="50" height="50" rx="7" fill="#ccc" /><text x="325" y="235" font-size="20" text-anchor="middle" fill="#333">F</text>
+  <rect id="KeyG" x="360" y="200" width="50" height="50" rx="7" fill="#ccc" /><text x="385" y="235" font-size="20" text-anchor="middle" fill="#333">G</text>
+  <rect id="KeyH" x="420" y="200" width="50" height="50" rx="7" fill="#ccc" /><text x="445" y="235" font-size="20" text-anchor="middle" fill="#333">H</text>
+  <rect id="KeyJ" x="480" y="200" width="50" height="50" rx="7" fill="#ccc" /><text x="505" y="235" font-size="20" text-anchor="middle" fill="#333">J</text>
+  <rect id="KeyK" x="540" y="200" width="50" height="50" rx="7" fill="#ccc" /><text x="565" y="235" font-size="20" text-anchor="middle" fill="#333">K</text>
+  <rect id="KeyL" x="600" y="200" width="50" height="50" rx="7" fill="#ccc" /><text x="625" y="235" font-size="20" text-anchor="middle" fill="#333">L</text>
+  <rect id="Semicolon" x="660" y="200" width="50" height="50" rx="7" fill="#ccc" /><text x="685" y="235" font-size="20" text-anchor="middle" fill="#333">;</text>
+  <rect id="Quote" x="720" y="200" width="50" height="50" rx="7" fill="#ccc" /><text x="745" y="235" font-size="20" text-anchor="middle" fill="#333">'</text>
+  <rect id="Enter" x="780" y="200" width="120" height="50" rx="7" fill="#ccc" /><text x="840" y="235" font-size="20" text-anchor="middle" fill="#333">Enter</text>
+  <!-- Row 5: Shift Z X C V B N M , . / Shift -->
+  <rect id="ShiftLeft" x="20" y="260" width="120" height="50" rx="7" fill="#ccc" /><text x="80" y="295" font-size="20" text-anchor="middle" fill="#333">Shift</text>
+  <rect id="KeyZ" x="150" y="260" width="50" height="50" rx="7" fill="#ccc" /><text x="175" y="295" font-size="20" text-anchor="middle" fill="#333">Z</text>
+  <rect id="KeyX" x="210" y="260" width="50" height="50" rx="7" fill="#ccc" /><text x="235" y="295" font-size="20" text-anchor="middle" fill="#333">X</text>
+  <rect id="KeyC" x="270" y="260" width="50" height="50" rx="7" fill="#ccc" /><text x="295" y="295" font-size="20" text-anchor="middle" fill="#333">C</text>
+  <rect id="KeyV" x="330" y="260" width="50" height="50" rx="7" fill="#ccc" /><text x="355" y="295" font-size="20" text-anchor="middle" fill="#333">V</text>
+  <rect id="KeyB" x="390" y="260" width="50" height="50" rx="7" fill="#ccc" /><text x="415" y="295" font-size="20" text-anchor="middle" fill="#333">B</text>
+  <rect id="KeyN" x="450" y="260" width="50" height="50" rx="7" fill="#ccc" /><text x="475" y="295" font-size="20" text-anchor="middle" fill="#333">N</text>
+  <rect id="KeyM" x="510" y="260" width="50" height="50" rx="7" fill="#ccc" /><text x="535" y="295" font-size="20" text-anchor="middle" fill="#333">M</text>
+  <rect id="Comma" x="570" y="260" width="50" height="50" rx="7" fill="#ccc" /><text x="595" y="295" font-size="20" text-anchor="middle" fill="#333">,</text>
+  <rect id="Period" x="630" y="260" width="50" height="50" rx="7" fill="#ccc" /><text x="655" y="295" font-size="20" text-anchor="middle" fill="#333">.</text>
+  <rect id="Slash" x="690" y="260" width="50" height="50" rx="7" fill="#ccc" /><text x="715" y="295" font-size="20" text-anchor="middle" fill="#333">/</text>
+  <rect id="ShiftRight" x="750" y="260" width="150" height="50" rx="7" fill="#ccc" /><text x="825" y="295" font-size="20" text-anchor="middle" fill="#333">Shift</text>
+  <!-- Row 6: Ctrl, Win, Alt, Space, Alt, Win, Menu, Ctrl -->
+  <rect id="ControlLeft" x="20" y="320" width="80" height="50" rx="7" fill="#ccc" /><text x="60" y="355" font-size="20" text-anchor="middle" fill="#333">Ctrl</text>
+  <rect id="MetaLeft" x="110" y="320" width="80" height="50" rx="7" fill="#ccc" /><text x="150" y="355" font-size="20" text-anchor="middle" fill="#333">Win</text>
+  <rect id="AltLeft" x="200" y="320" width="80" height="50" rx="7" fill="#ccc" /><text x="240" y="355" font-size="20" text-anchor="middle" fill="#333">Alt</text>
+  <rect id="Space" x="290" y="320" width="400" height="50" rx="7" fill="#ccc" /><text x="490" y="355" font-size="20" text-anchor="middle" fill="#333">Space</text>
+  <rect id="AltRight" x="700" y="320" width="80" height="50" rx="7" fill="#ccc" /><text x="740" y="355" font-size="20" text-anchor="middle" fill="#333">Alt</text>
+  <rect id="MetaRight" x="790" y="320" width="80" height="50" rx="7" fill="#ccc" /><text x="830" y="355" font-size="20" text-anchor="middle" fill="#333">Win</text>
+  <rect id="ContextMenu" x="880" y="320" width="80" height="50" rx="7" fill="#ccc" /><text x="920" y="355" font-size="20" text-anchor="middle" fill="#333">Menu</text>
+  <rect id="ControlRight" x="970" y="320" width="80" height="50" rx="7" fill="#ccc" /><text x="1010" y="355" font-size="20" text-anchor="middle" fill="#333">Ctrl</text>
+  <!-- Arrow keys -->
+  <rect id="ArrowUp" x="1080" y="200" width="50" height="50" rx="7" fill="#ccc" /><text x="1105" y="235" font-size="20" text-anchor="middle" fill="#333">↑</text>
+  <rect id="ArrowLeft" x="1030" y="260" width="50" height="50" rx="7" fill="#ccc" /><text x="1055" y="295" font-size="20" text-anchor="middle" fill="#333">←</text>
+  <rect id="ArrowDown" x="1080" y="260" width="50" height="50" rx="7" fill="#ccc" /><text x="1105" y="295" font-size="20" text-anchor="middle" fill="#333">↓</text>
+  <rect id="ArrowRight" x="1130" y="260" width="50" height="50" rx="7" fill="#ccc" /><text x="1155" y="295" font-size="20" text-anchor="middle" fill="#333">→</text>
+</svg>
