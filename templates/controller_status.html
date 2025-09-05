@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Controller Status</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>Controller Status</h1>
+    <p>Controller ID: {{ controller_id }}</p>
+    <h2>Input State</h2>
+    <ul>
+        {% for button, pressed in input_state['buttons'].items() %}
+        <li>{{ button }}: {{ 'Pressed' if pressed else 'Released' }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

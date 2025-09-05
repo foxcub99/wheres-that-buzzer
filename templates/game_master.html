@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Game Master</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>Game Master</h1>
+    <h2>Question {{ question_num }} of {{ total }}</h2>
+    <p>{{ question['question'] }}</p>
+    <ul>
+        {% for option in question['options'] %}
+        <li>{{ option }}</li>
+        {% endfor %}
+    </ul>
+    <button onclick="fetch('/api/prev', {method: 'POST'}).then(()=>location.reload())">Previous</button>
+    <button onclick="fetch('/api/next', {method: 'POST'}).then(()=>location.reload())">Next</button>
+    <hr>
+    <h3>Game Master Controls</h3>
+    <button onclick="toggleIP()">{{ 'Hide' if show_ip else 'Show' }} IP on Home Page</button>
+    <button onclick="startGame()" {% if game_started %}disabled{% endif %}>Start Game</button>
+    <p>IP Display: <strong>{{ 'On' if show_ip else 'Off' }}</strong></p>
+    <p>Game Started: <strong>{{ 'Yes' if game_started else 'No' }}</strong></p>
+    <script>
+    async function toggleIP() {
+        await fetch('/api/toggle_ip', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        location.reload();
+    }
+    async function startGame() {
+        await fetch('/api/start_game', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        location.reload();
+    }
+    </script>
+    <h3>Connected Gamepads</h3>
+    <ul>
+        {% for c in controllers %}
+        <li>{{ c }}</li>
+        {% endfor %}
+    </ul>
+
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script>
+    const socket = io();
+    socket.on('question_changed', function(data) {
+        location.reload();
+    });
+</script>
+</body>
+</html>

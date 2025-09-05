@@ -1,0 +1,19 @@
+{
+  "questions": [
+    {
+      "question": "What is the capital of France?",
+      "correct_answer": "Paris",
+      "options": ["Paris", "London", "Berlin", "Madrid"]
+    },
+    {
+      "question": "Which planet is known as the Red Planet?",
+      "correct_answer": "Mars",
+      "options": ["Earth", "Mars", "Jupiter", "Venus"]
+    },
+    {
+      "question": "Who wrote 'To Kill a Mockingbird'?",
+      "correct_answer": "Harper Lee",
+      "options": ["Harper Lee", "Mark Twain", "Jane Austen", "Ernest Hemingway"]
+    }
+  ]
+}
