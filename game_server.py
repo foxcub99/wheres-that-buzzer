@@ -298,7 +298,7 @@ def submit_answer():
         for t in state["team_numbers"]:
             state["team_numbers"][t] = random.randint(0, 3)
         socketio.emit("team_pressed", {"team": matched_team})
-        socketio.emit("reload_trivia", {})
+        socketio.emit("reload_post_buzz", {})
         socketio.emit("reload_team_pages", {})
     return jsonify(success=True)
 

@@ -1,9 +1,9 @@
-from . import joyl, joyr, ps, switch, xbox
+from . import joyl, joyr, ps, switch, xbox, keyboard
 
 def get_button_name(controller_type, button_id):
     if "Xbox" in controller_type:
         return xbox.get_button_name_xbox(button_id)
-    elif "DualSense" in controller_type or "DUALSHOCK" in controller_type or "PS4" in controller_type:
+    elif "DualSense" in controller_type:
         return ps.get_button_name_ps(button_id)
     elif "(L)" in controller_type:
         return joyl.get_button_name_joyl(button_id)
@@ -11,6 +11,8 @@ def get_button_name(controller_type, button_id):
         return joyr.get_button_name_joyr(button_id)
     elif "Pro" in controller_type:
         return switch.get_button_name_switch(button_id)
+    elif "Keyboard" in controller_type:
+        return keyboard.get_button_name_keyboard(button_id)
     else:
         return "Unknown Controller"
 
@@ -18,7 +20,7 @@ def get_button_name(controller_type, button_id):
 def get_all_button_ids(controller_type):
     if "Xbox" in controller_type:
         return list(xbox.button_names_xbox.keys())
-    elif "DualSense" in controller_type or "DUALSHOCK" in controller_type or "PS4" in controller_type:
+    elif "DualSense" in controller_type:
         return list(ps.button_names_ps.keys())
     elif "(L)" in controller_type:
         return list(joyl.button_names_joyl.keys())
@@ -26,13 +28,15 @@ def get_all_button_ids(controller_type):
         return list(joyr.button_names_joyr.keys())
     elif "Pro" in controller_type:
         return list(switch.button_names_switch.keys())
+    elif "Keyboard" in controller_type:
+        return list(keyboard.button_names_keyboard.keys())
     else:
         return list(range(0, 15))
 
 def get_button_id(controller_type, button_name):
     if "Xbox" in controller_type:
         return xbox.get_button_id_xbox(button_name)
-    elif "DualSense" in controller_type or "DUALSHOCK" in controller_type or "PS4" in controller_type:
+    elif "DualSense" in controller_type:
         return ps.get_button_id_ps(button_name)
     elif "(L)" in controller_type:
         return joyl.get_button_id_joyl(button_name)
@@ -40,5 +44,7 @@ def get_button_id(controller_type, button_name):
         return joyr.get_button_id_joyr(button_name)
     elif "Pro" in controller_type:
         return switch.get_button_id_switch(button_name)
+    elif "Keyboard" in controller_type:
+        return keyboard.get_button_id_keyboard(button_name)
     else:
         return "Unknown Controller"
