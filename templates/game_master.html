@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -21,6 +22,25 @@
     <button onclick="startGame()" {% if game_started %}disabled{% endif %}>Start Game</button>
     <p>IP Display: <strong>{{ 'On' if show_ip else 'Off' }}</strong></p>
     <p>Game Started: <strong>{{ 'Yes' if game_started else 'No' }}</strong></p>
+
+    <hr>
+    <h2>Team Scores</h2>
+    <ul id="team-scores-list">
+        {% for team, score in team_scores.items() %}
+        <li>
+            <strong>{{ team }}:</strong> <span id="score-{{ loop.index }}">{{ score }}</span>
+            <button onclick="changeScore('{{ team }}', 1)">+</button>
+            <button onclick="changeScore('{{ team }}', -1)">-</button>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <!-- Audio elements for team buzzers -->
+    <audio id="buzz1" src="/static/buzz1.mp3"></audio>
+    <audio id="buzz2" src="/static/buzz2.mp3"></audio>
+    <audio id="buzz3" src="/static/buzz3.mp3"></audio>
+
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <script>
     async function toggleIP() {
         await fetch('/api/toggle_ip', {
@@ -36,11 +56,57 @@
         });
         location.reload();
     }
+    async function changeScore(team, delta) {
+        await fetch('/api/score', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ team: team, delta: delta })
+        });
+        // No reload, will update via socket
+    }
+    socket.on('score_update', function(data) {
+        const scores = data.team_scores;
+        const list = document.getElementById('team-scores-list');
+        if (list) {
+            let i = 1;
+            for (const team in scores) {
+                const el = document.getElementById('score-' + i);
+                if (el) el.textContent = scores[team];
+                i++;
+            }
+        }
+    });
+
+    // Listen for buzz events and play the correct sound
+    socket.on('team_buzz', function(data) {
+        if (data && data.team) {
+            if (data.team === 'team1') document.getElementById('buzz1').play();
+            if (data.team === 'team2') document.getElementById('buzz2').play();
+            if (data.team === 'team3') document.getElementById('buzz3').play();
+        }
+    });
     </script>
+
+
     <h3>Connected Gamepads</h3>
-    <ul>
+    <ul id="controllers-list">
         {% for c in controllers %}
-        <li>{{ c }}</li>
+        <li style="margin-bottom:16px;" class="controller-item" data-controller-id="{{ c }}">
+            <div style="display:flex;align-items:center;">
+                <div style="width:18px;height:18px;border-radius:50%;background:#eee;border:2px solid #aaa;margin-right:10px;transition:background 0.2s;" class="controller-light" data-controller-id="{{ c }}"></div>
+                <div style="font-size:1.1em; font-weight:bold; color:#1e90ff;">ID: {{ c }}</div>
+                <button class="select-controller-btn" data-controller-id="{{ c }}" style="margin-left:12px;">Select</button>
+            </div>
+            {% set info = controller_infos[c] %}
+            <div style="margin-left:10px;">
+                <span style="color:#555;">IP:</span> {{ info.ip }}<br>
+                <span style="color:#555;">Name:</span> {{ info.extra.name or 'Unknown' }}<br>
+                <span style="color:#555;">Joystick ID:</span> {{ info.extra.joystick_id or 'N/A' }}<br>
+                <span style="color:#555;">UUID:</span> <span style="font-family:monospace;">{{ info.extra.uuid or 'N/A' }}</span><br>
+                <span style="color:#555;">User Agent:</span> {{ info.user_agent or 'N/A' }}
+            </div>
+        </li>
+
         {% endfor %}
     </ul>
 
@@ -50,6 +116,111 @@
     socket.on('question_changed', function(data) {
         location.reload();
     });
+
+    // Listen for controller list updates
+    socket.on('controllers_update', function(data) {
+        const list = document.getElementById('controllers-list');
+        if (list && data.controllers && data.controller_infos) {
+            list.innerHTML = '';
+            data.controllers.forEach(function(c) {
+                const info = data.controller_infos[c] || {};
+                const extra = info.extra || {};
+                const li = document.createElement('li');
+                li.style.marginBottom = '16px';
+                li.className = 'controller-item';
+                li.setAttribute('data-controller-id', c);
+                // Light and ID row
+                const rowDiv = document.createElement('div');
+                rowDiv.style.display = 'flex';
+                rowDiv.style.alignItems = 'center';
+                const light = document.createElement('div');
+                light.className = 'controller-light';
+                light.setAttribute('data-controller-id', c);
+                light.style.width = '18px';
+                light.style.height = '18px';
+                light.style.borderRadius = '50%';
+                light.style.background = '#eee';
+                light.style.border = '2px solid #aaa';
+                light.style.marginRight = '10px';
+                light.style.transition = 'background 0.2s';
+                rowDiv.appendChild(light);
+                const idDiv = document.createElement('div');
+                idDiv.style.fontSize = '1.1em';
+                idDiv.style.fontWeight = 'bold';
+                idDiv.style.color = '#1e90ff';
+                idDiv.textContent = 'ID: ' + c;
+                rowDiv.appendChild(idDiv);
+                // Add select button
+                const selectBtn = document.createElement('button');
+                selectBtn.className = 'select-controller-btn';
+                selectBtn.setAttribute('data-controller-id', c);
+                selectBtn.style.marginLeft = '12px';
+                selectBtn.textContent = 'Select';
+                rowDiv.appendChild(selectBtn);
+                li.appendChild(rowDiv);
+                // Details
+                const detailsDiv = document.createElement('div');
+                detailsDiv.style.marginLeft = '10px';
+                detailsDiv.innerHTML =
+                    '<span style="color:#555;">IP:</span> ' + (info.ip || 'N/A') + '<br>' +
+                    '<span style="color:#555;">Name:</span> ' + (extra.name || 'Unknown') + '<br>' +
+                    '<span style="color:#555;">Joystick ID:</span> ' + (extra.joystick_id ?? 'N/A') + '<br>' +
+                    '<span style="color:#555;">UUID:</span> <span style="font-family:monospace;">' + (extra.uuid || 'N/A') + '</span><br>' +
+                    '<span style="color:#555;">User Agent:</span> ' + (info.user_agent || 'N/A');
+                li.appendChild(detailsDiv);
+                list.appendChild(li);
+            });
+            // Always re-highlight selected controller after update
+            highlightSelectedController(window.currentSelectedControllerId || null);
+        }
+    });
+
+    // Listen for controller_flash event to flash the indicator
+    socket.on('controller_flash', function(data) {
+        const cid = data.controller_id;
+        const light = document.querySelector('.controller-light[data-controller-id="' + cid + '"]');
+        if (light) {
+            light.style.background = '#ff0';
+            setTimeout(() => {
+                light.style.background = '#eee';
+            }, 250);
+        }
+    });
 </script>
+
+    <script>
+        function highlightSelectedController(selectedId) {
+            window.currentSelectedControllerId = selectedId;
+            document.querySelectorAll('.select-controller-btn').forEach(function(btn) {
+                if (btn.getAttribute('data-controller-id') === selectedId) {
+                    btn.style.background = '#2196f3';
+                    btn.style.color = '#fff';
+                    btn.style.border = '2px solid #1976d2';
+                } else {
+                    btn.style.background = '';
+                    btn.style.color = '';
+                    btn.style.border = '';
+                }
+            });
+        }
+
+        // Socket.IO event for selected controller
+        if (typeof socket !== 'undefined') {
+            socket.on('selected_controller', function(data) {
+                highlightSelectedController(data.controller_id);
+            });
+            // On page load, request current selected controller
+            socket.emit('get_selected_controller');
+        }
+    </script>
+        <script>
+        document.addEventListener('click', function(e) {
+        if (e.target && e.target.classList.contains('select-controller-btn')) {
+            const cid = e.target.getAttribute('data-controller-id');
+            highlightSelectedController(cid); // instant UI feedback
+            socket.emit('select_controller', {controller_id: cid});
+        }
+    });
+        </script>
 </body>
 </html>
