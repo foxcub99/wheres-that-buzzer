@@ -36,6 +36,8 @@ def handle_select_controller(data):
         controller_type = None
         if cid and 'controller_infos' in state and cid in state['controller_infos']:
             controller_type = state['controller_infos'][cid]['extra'].get('name', 'Xbox')
+        elif cid == 'keyboard':
+            controller_type = 'Keyboard'  # Handle keyboard controllers specifically
         else:
             controller_type = 'Xbox'  # fallback
         # Get all button ids for this controller type
@@ -96,6 +98,8 @@ def get_team_button_name(team):
     controller_type = None
     if selected and 'controller_infos' in state and selected in state['controller_infos']:
         controller_type = state['controller_infos'][selected]['extra'].get('name', 'Xbox')
+    elif selected == 'keyboard':
+        controller_type = 'Keyboard'  # Handle keyboard controllers specifically
     else:
         controller_type = 'Xbox'  # fallback
     return controller_mapping.get_button_name(controller_type, btn_num)
@@ -298,7 +302,7 @@ def submit_answer():
         for t in state["team_numbers"]:
             state["team_numbers"][t] = random.randint(0, 3)
         socketio.emit("team_pressed", {"team": matched_team})
-        socketio.emit("reload_trivia", {})
+        socketio.emit("reload_post_buzz", {})
         socketio.emit("reload_team_pages", {})
     return jsonify(success=True)
 
