@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Game Changes</title>
+    <title>Game Changer</title>
     <link rel="stylesheet" href="/static/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
     <style>
@@ -129,7 +129,7 @@
 
     <div id="team-pressed-msg">
         {% if last_team_pressed %}
-        Team {{ last_team_pressed[-1] }} was pressed!
+        {{ last_team_pressed }} was pressed!
         {% endif %}
     </div>
 
@@ -149,14 +149,24 @@
         }
     });
     socket.on('team_pressed', function(data) {
-        if (data && data.team) {
+        if (data && data.team_display_name) {
             const msgDiv = document.getElementById('team-pressed-msg');
             if (msgDiv) {
-                msgDiv.textContent = `Team ${data.team.slice(-1)} was pressed!`;
+                msgDiv.textContent = `${data.team_display_name} was pressed!`;
+            }
+        } else {
+            // Clear the message if team is null
+            const msgDiv = document.getElementById('team-pressed-msg');
+            if (msgDiv) {
+                msgDiv.textContent = '';
             }
         }
     });
     socket.on('reload_post_buzz', function() {
+        location.reload();
+    });
+    socket.on('team_list_updated', function(data) {
+        // Update team scores display when teams are modified
         location.reload();
     });
 </script>

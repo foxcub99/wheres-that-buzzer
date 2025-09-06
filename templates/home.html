@@ -7,7 +7,17 @@
 <body>
     <h1>Welcome to Game Changer!</h1>
     {% if show_ip %}
-    <p>Game Server IP: <strong>{{ ip }}</strong></p>
+    <div style="margin-bottom: 20px;">
+        <p>Game Server IP: <strong>{{ ip }}</strong></p>
+        <h3>Team Pages:</h3>
+        <ul style="list-style-type: none; padding: 0;">
+            {% for team in team_urls %}
+            <li style="margin: 5px 0; font-family: monospace; font-size: 1.1em;">
+                <strong>{{ team.name }}:</strong> {{ team.url }}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
     {% endif %}
     <p>Waiting for the game to start...</p>
 
@@ -18,6 +28,9 @@
             location.reload();
         });
         socket.on('ip_toggled', function(data) {
+            location.reload();
+        });
+        socket.on('reload_home_page', function(data) {
             location.reload();
         });
 </script>

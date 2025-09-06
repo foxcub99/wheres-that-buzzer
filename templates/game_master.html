@@ -7,24 +7,66 @@
 </head>
 <body>
     <h1>Game Master</h1>
-    <h2>Question {{ question_num }} of {{ total }}</h2>
-    <p>{{ question['question'] }}</p>
-    <ul>
-        {% for option in question['options'] %}
-        <li>{{ option }}</li>
-        {% endfor %}
-    </ul>
-    <button onclick="fetch('/api/prev', {method: 'POST'}).then(()=>location.reload())">Previous</button>
-    <button onclick="fetch('/api/next', {method: 'POST'}).then(()=>location.reload())">Next</button>
+    
+    <!-- Game Master Controls -->
+    <div style="background: #f8f9fa; border-radius: 3px; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <button onclick="toggleIP()">{{ 'Hide' if show_ip else 'Show' }} IP on Home Page</button>
+                <span style="font-weight: bold;">IP Display: {{ 'On' if show_ip else 'Off' }}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <button onclick="startGame()" {% if game_started %}disabled{% endif %}>Start Game</button>
+                <span style="font-weight: bold;">Game Started: {{ 'Yes' if game_started else 'No' }}</span>
+            </div>
+        </div>
+    </div>
     <hr>
-    <h3>Game Master Controls</h3>
-    <button onclick="toggleIP()">{{ 'Hide' if show_ip else 'Show' }} IP on Home Page</button>
-    <button onclick="startGame()" {% if game_started %}disabled{% endif %}>Start Game</button>
-    <p>IP Display: <strong>{{ 'On' if show_ip else 'Off' }}</strong></p>
-    <p>Game Started: <strong>{{ 'Yes' if game_started else 'No' }}</strong></p>
-
+    
+    <!-- Question Navigation with Previews -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+        <!-- Previous Question Preview -->
+        <div style="flex: 1; margin-right: 20px; padding: 10px; background: #f5f5f5; border-radius: 5px; min-height: 100px;">
+            <h4 style="margin-top: 0; color: #666;">Previous Question</h4>
+            {% if prev_question %}
+                <p style="font-size: 0.9em; color: #333;">{{ prev_question['question'] }}</p>
+            {% else %}
+                <p style="font-style: italic; color: #999;">No previous question</p>
+            {% endif %}
+        </div>
+        
+        <!-- Current Question -->
+        <div style="flex: 2; text-align: center; padding: 0 20px;">
+            <h2>Question {{ question_num }} of {{ total }}</h2>
+            <p style="font-size: 1.1em; font-weight: bold;">{{ question['question'] }}</p>
+            <ul style="text-align: left; display: inline-block;">
+                {% for option in question['options'] %}
+                <li>{{ option }}</li>
+                {% endfor %}
+            </ul>
+            <div style="margin-top: 15px;">
+                <button onclick="previousQuestion()">Previous</button>
+                <button onclick="nextQuestion()">Next</button>
+            </div>
+        </div>
+        
+        <!-- Next Question Preview -->
+        <div style="flex: 1; margin-left: 20px; padding: 10px; background: #f5f5f5; border-radius: 5px; min-height: 100px;">
+            <h4 style="margin-top: 0; color: #666;">Next Question</h4>
+            {% if next_question %}
+                <p style="font-size: 0.9em; color: #333;">{{ next_question['question'] }}</p>
+            {% else %}
+                <p style="font-style: italic; color: #999;">No next question</p>
+            {% endif %}
+        </div>
+    </div>
     <hr>
-    <h2>Team Scores</h2>
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+        <h2 style="margin: 0;">Team Scores</h2>
+        <button onclick="toggleTeamManagement()" id="team-management-toggle" style="padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer;">
+            Show Team Management
+        </button>
+    </div>
     <ul id="team-scores-list">
         {% for team, score in team_scores.items() %}
         <li>
@@ -34,6 +76,73 @@
         </li>
         {% endfor %}
     </ul>
+
+    <!-- Team Management Section (Hidden by default) -->
+    <div id="team-management-section" style="display: none;">
+        <hr>
+        <h2>Team Management</h2>
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+            <div style="margin-bottom: 15px;">
+                <h4>Current Teams:</h4>
+                <div id="teams-list">
+                    {% for team, score in team_scores.items() %}
+                    <div style="display: flex; align-items: center; margin: 8px 0; padding: 8px; background: white; border-radius: 4px;">
+                        <div style="width: 30px; height: 30px; border-radius: 50%; background: {{ team_colors.get(team, '#333') }}; margin-right: 10px; border: 2px solid #ddd; cursor: pointer;" 
+                             onclick="openColorPicker({{ loop.index }}, '{{ team }}')" 
+                             title="Click to change team color"></div>
+                        <input type="text" value="{{ team }}" id="team-name-{{ loop.index }}" style="margin-right: 10px; padding: 5px; border: 1px solid #ccc; border-radius: 3px; flex: 1;">
+                        <button onclick="updateTeamName({{ loop.index }}, '{{ team }}')" style="margin-right: 5px; padding: 5px 10px; background: #28a745; color: white; border: none; border-radius: 3px; cursor: pointer;">Update</button>
+                        <button onclick="deleteTeam('{{ team }}')" style="padding: 5px 10px; background: #dc3545; color: white; border: none; border-radius: 3px; cursor: pointer;">Delete</button>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div style="border-top: 1px solid #ddd; padding-top: 15px;">
+                <h4>Add New Team:</h4>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <input type="text" id="new-team-name" placeholder="Enter team name" style="padding: 8px; border: 1px solid #ccc; border-radius: 3px; flex: 1;">
+                    <button onclick="addNewTeam()" style="padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer;">Add Team</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Color Wheel Popup Modal -->
+    <div id="color-wheel-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+        <div style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); max-width: 400px; width: 90%;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin: 0;">Choose Team Color</h3>
+                <button onclick="closeColorWheel()" style="background: #dc3545; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 16px;">×</button>
+            </div>
+            
+            <!-- Color Wheel Canvas -->
+            <div style="text-align: center; margin-bottom: 20px;">
+                <canvas id="color-wheel-canvas" width="250" height="250" style="cursor: crosshair; border: 1px solid #ddd; border-radius: 50%;"></canvas>
+            </div>
+            
+            <!-- Preset Colors -->
+            <div style="margin-bottom: 20px;">
+                <h4 style="margin: 0 0 10px 0; font-size: 14px;">Quick Colors:</h4>
+                <div id="preset-colors" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    <!-- Preset colors will be added here by JavaScript -->
+                </div>
+            </div>
+            
+            <!-- Selected Color Preview -->
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 14px;">Selected:</span>
+                    <div id="selected-color-preview" style="width: 40px; height: 40px; border-radius: 8px; border: 2px solid #ddd; background: #2a7ae2;"></div>
+                    <input type="text" id="color-hex-input" value="#2a7ae2" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 80px; font-family: monospace;" placeholder="#RRGGBB">
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="closeColorWheel()" style="padding: 8px 15px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
+                    <button onclick="applySelectedColor()" style="padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Apply</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <script>
@@ -52,49 +161,390 @@
         location.reload();
     }
     async function changeScore(team, delta) {
-        await fetch('/api/score', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ team: team, delta: delta })
-        });
+        console.log('Changing score for', team, 'by', delta);
+        try {
+            const response = await fetch('/api/score', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ team: team, delta: delta })
+            });
+            const result = await response.json();
+            console.log('Score change response:', result);
+        } catch (error) {
+            console.error('Error changing score:', error);
+        }
         // No reload, will update via socket
     }
-    socket.on('score_update', function(data) {
-        const scores = data.team_scores;
-        const list = document.getElementById('team-scores-list');
-        if (list) {
-            let i = 1;
-            for (const team in scores) {
-                const el = document.getElementById('score-' + i);
-                if (el) el.textContent = scores[team];
-                i++;
+
+    async function updateTeamName(index, oldName) {
+        const newName = document.getElementById('team-name-' + index).value.trim();
+        if (!newName) {
+            alert('Team name cannot be empty');
+            return;
+        }
+        if (newName === oldName) {
+            return; // No change
+        }
+        
+        try {
+            const response = await fetch('/api/update_team_name', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ old_name: oldName, new_name: newName })
+            });
+            const result = await response.json();
+            if (result.success) {
+                // Don't reload, let Socket.IO handle updates
+                console.log('Team name updated successfully');
+            } else {
+                alert('Error updating team name: ' + result.error);
             }
+        } catch (error) {
+            console.error('Error updating team name:', error);
+            alert('Error updating team name');
+        }
+    }
+
+    async function deleteTeam(teamName) {
+        if (!confirm('Are you sure you want to delete team "' + teamName + '"?')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch('/api/delete_team', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ team_name: teamName })
+            });
+            const result = await response.json();
+            if (result.success) {
+                // Don't reload, let Socket.IO handle updates
+                console.log('Team deleted successfully');
+            } else {
+                alert('Error deleting team: ' + result.error);
+            }
+        } catch (error) {
+            console.error('Error deleting team:', error);
+            alert('Error deleting team');
+        }
+    }
+
+    async function addNewTeam() {
+        const newName = document.getElementById('new-team-name').value.trim();
+        if (!newName) {
+            alert('Please enter a team name');
+            return;
+        }
+        
+        try {
+            const response = await fetch('/api/add_team', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ team_name: newName })
+            });
+            const result = await response.json();
+            if (result.success) {
+                document.getElementById('new-team-name').value = ''; // Clear input
+                // Don't reload, let Socket.IO handle updates
+                console.log('Team added successfully');
+            } else {
+                alert('Error adding team: ' + result.error);
+            }
+        } catch (error) {
+            console.error('Error adding team:', error);
+            alert('Error adding team');
+        }
+    }
+
+    function toggleTeamManagement() {
+        const section = document.getElementById('team-management-section');
+        const button = document.getElementById('team-management-toggle');
+        
+        if (section.style.display === 'none') {
+            section.style.display = 'block';
+            button.textContent = 'Hide Team Management';
+        } else {
+            section.style.display = 'none';
+            button.textContent = 'Show Team Management';
+        }
+    }
+
+    async function previousQuestion() {
+        try {
+            // Clear selected controller first
+            socket.emit('clear_controller');
+            // Navigate to previous question
+            await fetch('/api/prev', {method: 'POST'});
+            location.reload();
+        } catch (error) {
+            console.error('Error going to previous question:', error);
+        }
+    }
+
+    async function nextQuestion() {
+        try {
+            // Clear selected controller first
+            socket.emit('clear_controller');
+            // Navigate to next question
+            await fetch('/api/next', {method: 'POST'});
+            location.reload();
+        } catch (error) {
+            console.error('Error going to next question:', error);
+        }
+    }
+
+    function openColorPicker(index, teamName) {
+        // Store the current team info for later use
+        window.currentColorTeam = { index: index, name: teamName };
+        
+        // Get current team color
+        const teamElements = document.querySelectorAll('#teams-list > div');
+        let currentColor = '#2a7ae2';
+        teamElements.forEach((element, idx) => {
+            if (idx === index - 1) {
+                const colorCircle = element.querySelector('div[style*="border-radius: 50%"]');
+                if (colorCircle) {
+                    const bgColor = colorCircle.style.background;
+                    // Extract hex color from rgb or existing hex
+                    if (bgColor.startsWith('rgb')) {
+                        currentColor = rgbToHex(bgColor);
+                    } else {
+                        currentColor = bgColor;
+                    }
+                }
+            }
+        });
+        
+        // Show the color wheel modal
+        const modal = document.getElementById('color-wheel-modal');
+        modal.style.display = 'flex';
+        
+        // Initialize the color wheel
+        initializeColorWheel(currentColor);
+    }
+
+    function closeColorWheel() {
+        const modal = document.getElementById('color-wheel-modal');
+        modal.style.display = 'none';
+        window.currentColorTeam = null;
+    }
+
+    function initializeColorWheel(initialColor = '#2a7ae2') {
+        const canvas = document.getElementById('color-wheel-canvas');
+        const ctx = canvas.getContext('2d');
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const radius = 100;
+        
+        // Draw color wheel
+        function drawColorWheel() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw the color wheel
+            for (let angle = 0; angle < 360; angle++) {
+                const startAngle = (angle - 1) * Math.PI / 180;
+                const endAngle = angle * Math.PI / 180;
+                
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                ctx.lineWidth = 20;
+                ctx.strokeStyle = 'hsl(' + angle + ', 100%, 50%)';
+                ctx.stroke();
+            }
+            
+            // Draw saturation/lightness circle
+            const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius - 20);
+            gradient.addColorStop(0, 'white');
+            gradient.addColorStop(1, 'transparent');
+            
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius - 20, 0, 2 * Math.PI);
+            ctx.fillStyle = gradient;
+            ctx.fill();
+        }
+        
+        drawColorWheel();
+        
+        // Add click handler
+        canvas.onclick = function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left - centerX;
+            const y = e.clientY - rect.top - centerY;
+            const distance = Math.sqrt(x * x + y * y);
+            
+            if (distance <= radius && distance >= radius - 20) {
+                // Calculate hue from angle
+                let angle = Math.atan2(y, x) * 180 / Math.PI;
+                if (angle < 0) angle += 360;
+                
+                // Calculate saturation from distance
+                const saturation = Math.min(100, (distance / (radius - 20)) * 100);
+                
+                // Use fixed lightness for now
+                const lightness = 50;
+                
+                const color = hslToHex(angle, saturation, lightness);
+                updateSelectedColor(color);
+            } else if (distance < radius - 20) {
+                // Inside the wheel - pick based on distance from center
+                const saturation = 100 - (distance / (radius - 20)) * 100;
+                const lightness = 50 + (distance / (radius - 20)) * 30; // Vary lightness
+                
+                // Use current hue or default
+                const angle = Math.atan2(y, x) * 180 / Math.PI + (angle < 0 ? 360 : 0);
+                const color = hslToHex(angle, saturation, lightness);
+                updateSelectedColor(color);
+            }
+        };
+        
+        // Setup preset colors
+        setupPresetColors();
+        
+        // Set initial color
+        updateSelectedColor(initialColor);
+    }
+
+    function setupPresetColors() {
+        const presetContainer = document.getElementById('preset-colors');
+        const presetColors = [
+            '#2a7ae2', '#e74c3c', '#27ae60', '#f39c12', 
+            '#9b59b6', '#34495e', '#e67e22', '#1abc9c',
+            '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4',
+            '#ffeaa7', '#dda0dd', '#98d8c8', '#f7dc6f'
+        ];
+        
+        presetContainer.innerHTML = '';
+        presetColors.forEach(color => {
+            const colorDiv = document.createElement('div');
+            colorDiv.style.cssText = `
+                width: 30px; height: 30px; background: ${color}; 
+                border-radius: 6px; cursor: pointer; border: 2px solid #ddd;
+                transition: transform 0.1s;
+            `;
+            colorDiv.onmouseover = () => colorDiv.style.transform = 'scale(1.1)';
+            colorDiv.onmouseout = () => colorDiv.style.transform = 'scale(1)';
+            colorDiv.onclick = () => updateSelectedColor(color);
+            presetContainer.appendChild(colorDiv);
+        });
+    }
+
+    function updateSelectedColor(color) {
+        const preview = document.getElementById('selected-color-preview');
+        const input = document.getElementById('color-hex-input');
+        
+        preview.style.background = color;
+        input.value = color;
+    }
+
+    function applySelectedColor() {
+        const color = document.getElementById('color-hex-input').value;
+        if (window.currentColorTeam) {
+            updateTeamColor(window.currentColorTeam.name, color);
+            closeColorWheel();
+        }
+    }
+
+    // Utility functions
+    function hslToHex(h, s, l) {
+        l /= 100;
+        const a = s * Math.min(l, 1 - l) / 100;
+        const f = n => {
+            const k = (n + h / 30) % 12;
+            const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+            return Math.round(255 * color).toString(16).padStart(2, '0');
+        };
+        return `#${f(0)}${f(8)}${f(4)}`;
+    }
+
+    function rgbToHex(rgb) {
+        const result = rgb.match(/\d+/g);
+        if (result && result.length >= 3) {
+            return "#" + ((1 << 24) + (parseInt(result[0]) << 16) + (parseInt(result[1]) << 8) + parseInt(result[2])).toString(16).slice(1);
+        }
+        return rgb;
+    }
+
+    // Allow manual hex input
+    document.addEventListener('DOMContentLoaded', function() {
+        const hexInput = document.getElementById('color-hex-input');
+        if (hexInput) {
+            hexInput.oninput = function() {
+                const color = this.value;
+                if (/^#[0-9A-F]{6}$/i.test(color)) {
+                    document.getElementById('selected-color-preview').style.background = color;
+                }
+            };
         }
     });
 
-    // Listen for buzz events and play the correct sound
-    socket.on('team_buzz', function(data) {
-        if (data && data.team) {
-            if (data.team === 'team1') document.getElementById('buzz1').play();
-            if (data.team === 'team2') document.getElementById('buzz2').play();
-            if (data.team === 'team3') document.getElementById('buzz3').play();
+    async function updateTeamColor(teamName, color) {
+        try {
+            const response = await fetch('/api/update_team_color', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ team_name: teamName, team_color: color })
+            });
+            const result = await response.json();
+            if (result.success) {
+                // Update the color circle visually without reloading
+                const teamElements = document.querySelectorAll('#teams-list > div');
+                teamElements.forEach((element, index) => {
+                    const nameInput = element.querySelector('input[type="text"]');
+                    if (nameInput && nameInput.value === teamName) {
+                        const colorCircle = element.querySelector('div[style*="border-radius: 50%"]');
+                        if (colorCircle) {
+                            colorCircle.style.background = color;
+                        }
+                    }
+                });
+            } else {
+                alert('Error updating team color: ' + result.error);
+            }
+        } catch (error) {
+            console.error('Error updating team color:', error);
+            alert('Error updating team color');
         }
+    }
+
+    // Listen for buzz events - sounds are played server-side
+    socket.on('team_buzz', function(data) {
+        // Buzz events are handled server-side with afplay
+        // This handler can be used for visual feedback if needed
+        console.log('Team buzz event:', data);
     });
     </script>
 
-
-    <h3>Connected Gamepads</h3>
+    <hr>
+    <h2>Connected Gamepads</h2>
+    <div style="margin-bottom: 15px;">
+        <button id="clear-controller-btn" style="background: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
+            Clear Selected Controller
+        </button>
+    </div>
     <ul id="controllers-list">
         {% for c in controllers %}
         <li style="margin-bottom:16px;" class="controller-item" data-controller-id="{{ c }}">
             <div style="display:flex;align-items:center;">
-                <div style="width:18px;height:18px;border-radius:50%;background:#eee;border:2px solid #aaa;margin-right:10px;transition:background 0.2s;" class="controller-light" data-controller-id="{{ c }}"></div>
+                {% if c in controller_infos %}
+                    {% set status = controller_infos[c].get('status', 'active') %}
+                    {% if status == 'active' %}
+                        <div style="width:18px;height:18px;border-radius:50%;background:#4CAF50;border:2px solid #45a049;margin-right:10px;transition:background 0.2s;" class="controller-light" data-controller-id="{{ c }}" title="Active"></div>
+                    {% else %}
+                        <div style="width:18px;height:18px;border-radius:50%;background:#f44336;border:2px solid #da190b;margin-right:10px;transition:background 0.2s;" class="controller-light" data-controller-id="{{ c }}" title="Inactive"></div>
+                    {% endif %}
+                {% else %}
+                    <div style="width:18px;height:18px;border-radius:50%;background:#ff9800;border:2px solid #f57c00;margin-right:10px;transition:background 0.2s;" class="controller-light" data-controller-id="{{ c }}" title="Unregistered"></div>
+                {% endif %}
                 <div style="font-size:1.1em; font-weight:bold; color:#1e90ff;">ID: {{ c }}</div>
                 <button class="select-controller-btn" data-controller-id="{{ c }}" style="margin-left:12px;">Select</button>
             </div>
             {% if c in controller_infos %}
                 {% set info = controller_infos[c] %}
                 <div style="margin-left:10px;">
+                    <span style="color:#555;">Status:</span> 
+                    <span class="controller-status" style="color:{% if info.get('status', 'active') == 'active' %}#4CAF50{% else %}#f44336{% endif %};">
+                        {{ info.get('status', 'active')|title }}
+                    </span><br>
                     <span style="color:#555;">IP:</span> {{ info.ip }}<br>
                     <span style="color:#555;">Name:</span> {{ info.extra.name or 'Unknown' }}<br>
                     <span style="color:#555;">Joystick ID:</span> {{ info.extra.joystick_id or 'N/A' }}<br>
@@ -113,20 +563,41 @@
     </ul>
 
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-<script>
+    <script>
     const socket = io();
-    socket.on('question_changed', function(data) {
-        location.reload();
+    
+    // Test socket connection
+    socket.on('connect', function() {
+        console.log('Socket connected successfully');
+    });
+    
+    socket.on('disconnect', function() {
+        console.log('Socket disconnected');
     });
 
-    // Listen for controller list updates
+    socket.on('question_changed', function(data) {
+        location.reload();
+    });    // Listen for controller list updates
+    socket.on('score_update', function(data) {
+        console.log('Received score_update event:', data);
+        const scores = data.team_scores;
+        let i = 1;
+        for (const team in scores) {
+            const el = document.getElementById('score-' + i);
+            console.log('Updating score for team', team, 'with score', scores[team], 'element ID: score-' + i, 'element found:', el);
+            if (el) el.textContent = scores[team];
+            i++;
+        }
+    });
     socket.on('controllers_update', function(data) {
         const list = document.getElementById('controllers-list');
-        if (list && data.controllers && data.controller_infos) {
+        if (list && data.controller_infos) {
             list.innerHTML = '';
-            data.controllers.forEach(function(c) {
+            // Show all controllers ever registered
+            Object.keys(data.controller_infos).forEach(function(c) {
                 const info = data.controller_infos[c] || {};
                 const extra = info.extra || {};
+                const status = info.status || 'active';
                 const li = document.createElement('li');
                 li.style.marginBottom = '16px';
                 li.className = 'controller-item';
@@ -141,10 +612,17 @@
                 light.style.width = '18px';
                 light.style.height = '18px';
                 light.style.borderRadius = '50%';
-                light.style.background = '#eee';
-                light.style.border = '2px solid #aaa';
                 light.style.marginRight = '10px';
                 light.style.transition = 'background 0.2s';
+                if (status === 'active') {
+                    light.style.background = '#4CAF50';
+                    light.style.border = '2px solid #45a049';
+                    light.title = 'Active';
+                } else {
+                    light.style.background = '#f44336';
+                    light.style.border = '2px solid #da190b';
+                    light.title = 'Inactive';
+                }
                 rowDiv.appendChild(light);
                 const idDiv = document.createElement('div');
                 idDiv.style.fontSize = '1.1em';
@@ -164,6 +642,7 @@
                 const detailsDiv = document.createElement('div');
                 detailsDiv.style.marginLeft = '10px';
                 detailsDiv.innerHTML =
+                    '<span style="color:#555;">Status:</span> <span class="controller-status" style="color:' + (status === 'active' ? '#4CAF50' : '#f44336') + ';">' + status.charAt(0).toUpperCase() + status.slice(1) + '</span><br>' +
                     '<span style="color:#555;">IP:</span> ' + (info.ip || 'N/A') + '<br>' +
                     '<span style="color:#555;">Name:</span> ' + (extra.name || 'Unknown') + '<br>' +
                     '<span style="color:#555;">Joystick ID:</span> ' + (extra.joystick_id ?? 'N/A') + '<br>' +
@@ -186,6 +665,74 @@
             setTimeout(() => {
                 light.style.background = '#eee';
             }, 250);
+        }
+    });
+
+    // Listen for controller status updates
+    socket.on('controller_status_update', function(data) {
+        const controllerId = data.controller_id;
+        const status = data.status;
+        
+        // Update the controller light indicator
+        const light = document.querySelector('.controller-light[data-controller-id="' + controllerId + '"]');
+        if (light) {
+            if (status === 'active') {
+                light.style.background = '#4CAF50';
+                light.style.border = '2px solid #45a049';
+                light.title = 'Active';
+            } else {
+                light.style.background = '#f44336';
+                light.style.border = '2px solid #da190b';
+                light.title = 'Inactive';
+            }
+        }
+        
+        // Update the status text in the details
+        const controllerItem = document.querySelector('.controller-item[data-controller-id="' + controllerId + '"]');
+        if (controllerItem) {
+            const statusSpan = controllerItem.querySelector('.controller-status');
+            if (statusSpan) {
+                statusSpan.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+                statusSpan.style.color = status === 'active' ? '#4CAF50' : '#f44336';
+            }
+        }
+    });
+    
+    // Listen for team list updates to refresh team scores and management sections
+    socket.on('team_list_updated', function(data) {
+        // Update team scores section
+        const scoresList = document.getElementById('team-scores-list');
+        if (scoresList && data.team_scores) {
+            scoresList.innerHTML = '';
+            let index = 1;
+            for (const [teamName, score] of Object.entries(data.team_scores)) {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <strong>${teamName}:</strong> <span id="score-${index}">${score}</span>
+                    <button onclick="changeScore('${teamName}', 1)">+</button>
+                    <button onclick="changeScore('${teamName}', -1)">-</button>
+                `;
+                scoresList.appendChild(li);
+                index++;
+            }
+        }
+        
+        // Update team management section
+        const teamsList = document.getElementById('teams-list');
+        if (teamsList && data.team_scores) {
+            teamsList.innerHTML = '';
+            let index = 1;
+            for (const [teamName, score] of Object.entries(data.team_scores)) {
+                const teamDiv = document.createElement('div');
+                teamDiv.style.cssText = 'display: flex; align-items: center; margin: 8px 0; padding: 8px; background: white; border-radius: 4px;';
+                teamDiv.innerHTML = `
+                    <input type="text" value="${teamName}" id="team-name-${index}" style="margin-right: 10px; padding: 5px; border: 1px solid #ccc; border-radius: 3px; flex: 1;">
+                    <button onclick="updateTeamName(${index}, '${teamName}')" style="margin-right: 5px; padding: 5px 10px; background: #28a745; color: white; border: none; border-radius: 3px; cursor: pointer;">Update</button>
+                    <button onclick="deleteTeam('${teamName}')" style="padding: 5px 10px; background: #dc3545; color: white; border: none; border-radius: 3px; cursor: pointer;">Delete</button>
+                `;
+                teamsList.appendChild(teamDiv);
+                index++;
+            }
         }
     });
 </script>
@@ -221,6 +768,10 @@
             const cid = e.target.getAttribute('data-controller-id');
             highlightSelectedController(cid); // instant UI feedback
             socket.emit('select_controller', {controller_id: cid});
+        }
+        if (e.target && e.target.id === 'clear-controller-btn') {
+            highlightSelectedController(null); // clear UI feedback
+            socket.emit('clear_controller');
         }
     });
         </script>
