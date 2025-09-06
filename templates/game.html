@@ -1,24 +1,162 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Trivia Game</title>
+    <title>Game Changes</title>
     <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: #fff;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        h1 {
+            color: #fff;
+            background: linear-gradient(90deg, #ff6f61, #f9d423, #1e90ff, #43e97b);
+            padding: 24px 0 16px 0;
+            margin: 0 0 24px 0;
+            font-size: 3em;
+            letter-spacing: 0.1em;
+            text-shadow: 2px 2px 8px #0002;
+        }
+        .question-box {
+            background: #f9f9f9;
+            border-radius: 18px;
+            box-shadow: 0 2px 16px #0001;
+            padding: 32px 32px 16px 32px;
+            margin: 0 auto 32px auto;
+            max-width: 700px;
+        }
+        .options-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 18px;
+            margin: 24px 0 0 0;
+        }
+        .options-list li {
+            background: linear-gradient(135deg, #f9d423 60%, #ff6f61 100%);
+            color: #fff;
+            font-size: 1.3em;
+            border-radius: 12px;
+            padding: 18px 32px;
+            box-shadow: 0 2px 8px #0002;
+            min-width: 120px;
+            text-align: center;
+            font-weight: bold;
+            letter-spacing: 0.05em;
+            transition: transform 0.1s;
+        }
+        .options-list li:hover {
+            transform: scale(1.07);
+            background: linear-gradient(135deg, #43e97b 60%, #38f9d7 100%);
+            color: #222;
+        }
+        .scores-title {
+            color: #1e90ff;
+            font-size: 2em;
+            margin: 32px 0 12px 0;
+            text-align: center;
+            letter-spacing: 0.08em;
+        }
+        .scores-list {
+            display: flex;
+            justify-content: center;
+            gap: 48px;
+            margin-bottom: 24px;
+        }
+        .score-box {
+            background: #222;
+            border-radius: 16px;
+            padding: 18px 32px;
+            box-shadow: 0 2px 12px #0002;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .score-label {
+            color: #fff;
+            font-size: 1.2em;
+            margin-bottom: 8px;
+            letter-spacing: 0.06em;
+        }
+        .score-lcd {
+            font-family: 'Orbitron', monospace;
+            font-size: 3.5em;
+            color: #43e97b;
+            background: #111;
+            border-radius: 8px;
+            padding: 0 24px;
+            letter-spacing: 0.08em;
+            text-shadow: 0 0 12px #43e97b99, 0 2px 8px #0008;
+            margin-bottom: 0;
+        }
+        #team-pressed-msg {
+            margin-top: 30px;
+            font-size: 2em;
+            color: #ff6f61;
+            text-align: center;
+            font-weight: bold;
+            letter-spacing: 0.08em;
+            text-shadow: 0 2px 8px #0001;
+        }
+    </style>
 </head>
 <body>
     <h1>Trivia Game</h1>
-    <h2>Question {{ question_num }} of {{ total }}</h2>
-    <p>{{ question['question'] }}</p>
-    <ul>
-        {% for option in question['options'] %}
-        <li>{{ option }}</li>
+
+    <div class="question-box">
+        <h2 style="color:#ff6f61; margin-top:0;">Question {{ question_num }} of {{ total }}</h2>
+        <p style="font-size:1.5em; color:#222; margin:18px 0 0 0;">{{ question['question'] }}</p>
+        <ul class="options-list">
+            {% for option in question['options'] %}
+            <li>{{ option }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="scores-title">Team Scores</div>
+    <div class="scores-list" id="team-scores-list">
+        {% for team, score in team_scores.items() %}
+        <div class="score-box">
+            <div class="score-label">{{ team }}</div>
+            <div class="score-lcd" id="score-{{ loop.index }}">{{ score }}</div>
+        </div>
         {% endfor %}
-    </ul>
+    </div>
+
+    <div id="team-pressed-msg">
+        {% if last_team_pressed %}
+        Team {{ last_team_pressed[-1] }} was pressed!
+        {% endif %}
+    </div>
 
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <script>
     const socket = io();
     socket.on('question_changed', function(data) {
-        // Reload page to get new question
+        location.reload();
+    });
+    socket.on('score_update', function(data) {
+        const scores = data.team_scores;
+        let i = 1;
+        for (const team in scores) {
+            const el = document.getElementById('score-' + i);
+            if (el) el.textContent = scores[team];
+            i++;
+        }
+    });
+    socket.on('team_pressed', function(data) {
+        if (data && data.team) {
+            const msgDiv = document.getElementById('team-pressed-msg');
+            if (msgDiv) {
+                msgDiv.textContent = `Team ${data.team.slice(-1)} was pressed!`;
+            }
+        }
+    });
+    socket.on('reload_trivia', function() {
         location.reload();
     });
 </script>
