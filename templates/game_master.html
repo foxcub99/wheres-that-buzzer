@@ -35,11 +35,6 @@
         {% endfor %}
     </ul>
 
-    <!-- Audio elements for team buzzers -->
-    <audio id="buzz1" src="/static/buzz1.mp3"></audio>
-    <audio id="buzz2" src="/static/buzz2.mp3"></audio>
-    <audio id="buzz3" src="/static/buzz3.mp3"></audio>
-
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <script>
     async function toggleIP() {
@@ -97,14 +92,21 @@
                 <div style="font-size:1.1em; font-weight:bold; color:#1e90ff;">ID: {{ c }}</div>
                 <button class="select-controller-btn" data-controller-id="{{ c }}" style="margin-left:12px;">Select</button>
             </div>
-            {% set info = controller_infos[c] %}
-            <div style="margin-left:10px;">
-                <span style="color:#555;">IP:</span> {{ info.ip }}<br>
-                <span style="color:#555;">Name:</span> {{ info.extra.name or 'Unknown' }}<br>
-                <span style="color:#555;">Joystick ID:</span> {{ info.extra.joystick_id or 'N/A' }}<br>
-                <span style="color:#555;">UUID:</span> <span style="font-family:monospace;">{{ info.extra.uuid or 'N/A' }}</span><br>
-                <span style="color:#555;">User Agent:</span> {{ info.user_agent or 'N/A' }}
-            </div>
+            {% if c in controller_infos %}
+                {% set info = controller_infos[c] %}
+                <div style="margin-left:10px;">
+                    <span style="color:#555;">IP:</span> {{ info.ip }}<br>
+                    <span style="color:#555;">Name:</span> {{ info.extra.name or 'Unknown' }}<br>
+                    <span style="color:#555;">Joystick ID:</span> {{ info.extra.joystick_id or 'N/A' }}<br>
+                    <span style="color:#555;">UUID:</span> <span style="font-family:monospace;">{{ info.extra.uuid or 'N/A' }}</span><br>
+                    <span style="color:#555;">User Agent:</span> {{ info.user_agent or 'N/A' }}
+                </div>
+            {% else %}
+                <div style="margin-left:10px;">
+                    <span style="color:#555;">Type:</span> {{ c }}<br>
+                    <span style="color:#999; font-style:italic;">Controller not fully registered</span>
+                </div>
+            {% endif %}
         </li>
 
         {% endfor %}

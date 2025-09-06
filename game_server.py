@@ -36,6 +36,8 @@ def handle_select_controller(data):
         controller_type = None
         if cid and 'controller_infos' in state and cid in state['controller_infos']:
             controller_type = state['controller_infos'][cid]['extra'].get('name', 'Xbox')
+        elif cid == 'keyboard':
+            controller_type = 'Keyboard'  # Handle keyboard controllers specifically
         else:
             controller_type = 'Xbox'  # fallback
         # Get all button ids for this controller type
@@ -96,6 +98,8 @@ def get_team_button_name(team):
     controller_type = None
     if selected and 'controller_infos' in state and selected in state['controller_infos']:
         controller_type = state['controller_infos'][selected]['extra'].get('name', 'Xbox')
+    elif selected == 'keyboard':
+        controller_type = 'Keyboard'  # Handle keyboard controllers specifically
     else:
         controller_type = 'Xbox'  # fallback
     return controller_mapping.get_button_name(controller_type, btn_num)
