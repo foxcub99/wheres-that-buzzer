@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Trivia Game</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>Trivia Game</h1>
+    <h2>Question {{ question_num }} of {{ total }}</h2>
+    <p>{{ question['question'] }}</p>
+    <ul>
+        {% for option in question['options'] %}
+        <li>{{ option }}</li>
+        {% endfor %}
+    </ul>
+
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script>
+    const socket = io();
+    socket.on('question_changed', function(data) {
+        // Reload page to get new question
+        location.reload();
+    });
+</script>
+</body>
+</html>
