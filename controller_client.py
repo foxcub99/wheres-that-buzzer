@@ -45,6 +45,33 @@ def register_controllers(controllers):
     except Exception as e:
         print(f"Exception during controller registration: {e}")
 
+def send_controller_status(controller_id, status):
+    """Send controller status update to game server"""
+    try:
+        requests.post(
+            f"{GAME_SERVER_URL}/api/controller_status",
+            json={
+                "controller_id": controller_id,
+                "status": status  # "active" or "inactive"
+            },
+            timeout=0.5
+        )
+    except requests.RequestException as e:
+        print(f"Failed to send controller status: {e}")
+
+
+def detect_controllers():
+    """Detect currently connected controllers"""
+    pygame.joystick.quit()
+    pygame.joystick.init()
+    current_controllers = {}
+    for i in range(pygame.joystick.get_count()):
+        joystick = pygame.joystick.Joystick(i)
+        joystick.init()
+        current_controllers[i] = joystick
+    return current_controllers
+
+
 def main():
     # Keyboard input using pynput
     def send_keyboard_event(device_id, answer):
@@ -58,7 +85,7 @@ def main():
                     },
                     timeout=0.5
                 )
-            except Exception as e:
+            except requests.RequestException as e:
                 print(f"Failed to send keyboard input: {e}")
         threading.Thread(target=send, daemon=True).start()
 
@@ -68,7 +95,8 @@ def main():
             k = key.char if hasattr(key, 'char') and key.char else str(key)
         except Exception:
             k = str(key)
-        print(f"Keyboard key {controller_mapping.get_button_name('Keyboard', k)} pressed")
+        button_name = controller_mapping.get_button_name('Keyboard', k)
+        print(f"Keyboard key {button_name} pressed")
         send_keyboard_event(device_id, k)
 
     def on_release(key):
@@ -77,30 +105,68 @@ def main():
             k = key.char if hasattr(key, 'char') and key.char else str(key)
         except Exception:
             k = str(key)
-        print(f"Keyboard key {controller_mapping.get_button_name('Keyboard', k)} released")
+        button_name = controller_mapping.get_button_name('Keyboard', k)
+        print(f"Keyboard key {button_name} released")
         send_keyboard_event(device_id, None)
 
     listener = keyboard.Listener(on_press=on_press, on_release=on_release)
     listener.start()
     pygame.init()
     pygame.joystick.init()
+    
+    # Track controllers and their status
     controllers = {}
-    # Detect all connected controllers
-    for i in range(pygame.joystick.get_count()):
-        joystick = pygame.joystick.Joystick(i)
-        joystick.init()
-        controllers[i] = joystick
+    last_controller_count = 0
+
+    # Initial controller detection
+    controllers = detect_controllers()
+    for i, joystick in controllers.items():
         print(f"Detected controller {i}: {joystick.get_name()}")
     if not controllers:
-        print("No controllers detected. Keyboard input will still be processed.")
+        print("No controllers detected. Keyboard input will still work.")
 
-    # Register all controllers on startup and periodically
-    def periodic_register():
+    # Dynamic controller detection and registration
+    def dynamic_controller_manager():
+        nonlocal controllers, last_controller_count
         while True:
-            register_controllers(controllers)
-            time.sleep(5)
+            try:
+                # Detect current controllers
+                current_controllers = detect_controllers()
+                current_count = len(current_controllers)
+                
+                # Check for newly connected controllers
+                for i, joystick in current_controllers.items():
+                    if i not in controllers:
+                        print(f"New controller detected {i}: "
+                              f"{joystick.get_name()}")
+                        controllers[i] = joystick
+                        # Register new controller immediately
+                        register_controllers({i: joystick})
+                        send_controller_status(f"{CONTROLLER_ID}_{i}",
+                                               "active")
+                
+                # Check for disconnected controllers
+                for i in list(controllers.keys()):
+                    if i not in current_controllers:
+                        print(f"Controller {i} disconnected")
+                        send_controller_status(f"{CONTROLLER_ID}_{i}",
+                                               "inactive")
+                        del controllers[i]
+                
+                # Re-register all active controllers periodically
+                if controllers:
+                    register_controllers(controllers)
+                    for i in controllers.keys():
+                        send_controller_status(f"{CONTROLLER_ID}_{i}",
+                                               "active")
+                
+                last_controller_count = current_count
+            except Exception as e:
+                print(f"Error in controller detection: {e}")
+            
+            time.sleep(2)  # Check every 2 seconds
 
-    threading.Thread(target=periodic_register, daemon=True).start()
+    threading.Thread(target=dynamic_controller_manager, daemon=True).start()
 
     while True:
         for event in pygame.event.get():
@@ -108,7 +174,11 @@ def main():
                 joy_id = event.joy
                 button = event.button
                 pressed = event.type == pygame.JOYBUTTONDOWN
-                print(f"Controller {joy_id} Button {controller_mapping.get_button_name(pygame.joystick.Joystick(event.joy).get_name(), button)} {'pressed' if pressed else 'released'}")
+                joystick = pygame.joystick.Joystick(event.joy)
+                button_name = controller_mapping.get_button_name(
+                    joystick.get_name(), button)
+                status = 'pressed' if pressed else 'released'
+                print(f"Controller {joy_id} Button {button_name} {status}")
                 # Use unique controller_id for each controller
                 try:
                     requests.post(
@@ -119,9 +189,10 @@ def main():
                         },
                         timeout=0.5
                     )
-                except Exception as e:
+                except requests.RequestException as e:
                     print(f"Failed to send input: {e}")
         time.sleep(0.01)
+
 
 if __name__ == "__main__":
     main()

@@ -2,6 +2,7 @@ button_names_keyboard = {
     "Key.esc": "Esc",
     "a": "a",
     "b": "b",
+    "c": "c",
 }
 
 

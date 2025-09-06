@@ -1,0 +1,59 @@
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script>
+    const socket = io();
+    socket.on('reload_team_pages', function() {
+        location.reload();
+    });
+</script>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ team_name }} Random Number</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .number-box {
+            font-size: 80px;
+            color: #2a7ae2;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 2px 12px #0001;
+            width: 200px;
+            margin: 40px auto;
+            text-align: center;
+            padding: 40px 0;
+        }
+        h1 { text-align: center; }
+        
+        /* Use dynamic team color from backend */
+        .number-box { color: {{ team_color|default("#2a7ae2") }}; }
+    </style>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script>
+        const socket = io();
+        socket.on('reload_team_pages', function() {
+            location.reload();
+        });
+        socket.on('team_color_updated', function(data) {
+            // Update the team color dynamically if it matches this team
+            if (data.team_name === '{{ team_name }}') {
+                const numberBox = document.querySelector('.number-box');
+                if (numberBox) {
+                    numberBox.style.color = data.team_color;
+                }
+            }
+        });
+    </script>
+</head>
+<body>
+    <h1>{{ team_name }}</h1>
+    <div class="number-box" id="random-number">
+        {% if not game_started %}
+            Waiting to start...
+        {% elif not selected_controller %}
+            Waiting for button to be chosen...
+        {% else %}
+            {{ button_name }} <span style="font-size:0.5em; color:#888;">({{ team_number }})</span>
+        {% endif %}
+    </div>
+</body>
+</html>
