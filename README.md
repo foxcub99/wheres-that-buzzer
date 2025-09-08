@@ -1,0 +1,1 @@
+the start of a readme. I should explain how to set up a venv, how to install dependencies and how to run the things. 

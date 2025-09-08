@@ -1,6 +1,8 @@
 from pynput import keyboard
 import uuid
 import os
+import argparse
+import threading
 
 from controllers import controller_mapping
 
@@ -8,11 +10,13 @@ from controllers import controller_mapping
 import pygame
 import requests
 import time
-import threading
 from utils import get_host_ip
 
 GAME_SERVER_URL = "http://localhost:5002"  # Update if needed
 CONTROLLER_ID = get_host_ip()
+
+# Global visualizer instance
+visualizer_instance = None
 
 
 UUID_FILE = "controller_uuid.txt"
@@ -73,6 +77,26 @@ def detect_controllers():
 
 
 def main():
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description='Controller Client')
+    parser.add_argument('--visualizer', action='store_true',
+                        help='Start visual controller interface')
+    args = parser.parse_args()
+    
+    # Start visualizer if requested
+    if args.visualizer:
+        from controller_visualizer import ControllerVisualizer
+        global visualizer_instance
+        visualizer_instance = ControllerVisualizer()
+        visualizer_thread = threading.Thread(
+            target=visualizer_instance.run,
+            kwargs={'port': 5003, 'debug': False},
+            daemon=True
+        )
+        visualizer_thread.start()
+        host_ip = get_host_ip()
+        print(f"Visual controller interface started at http://{host_ip}:5003/")
+    
     # Keyboard input using pynput
     def send_keyboard_event(device_id, answer):
         def send():
@@ -98,6 +122,10 @@ def main():
         button_name = controller_mapping.get_button_name('Keyboard', k)
         print(f"Keyboard key {button_name} pressed")
         send_keyboard_event(device_id, k)
+        
+        # Update visualizer if running
+        if visualizer_instance:
+            visualizer_instance.button_pressed(device_id, k, button_name)
 
     def on_release(key):
         device_id = "keyboard"
@@ -108,11 +136,24 @@ def main():
         button_name = controller_mapping.get_button_name('Keyboard', k)
         print(f"Keyboard key {button_name} released")
         send_keyboard_event(device_id, None)
+        
+        # Update visualizer if running
+        if visualizer_instance:
+            visualizer_instance.button_released(device_id, k, button_name)
 
     listener = keyboard.Listener(on_press=on_press, on_release=on_release)
     listener.start()
     pygame.init()
     pygame.joystick.init()
+    
+    # Register keyboard with visualizer if running
+    if visualizer_instance:
+        keyboard_info = {
+            "id": "keyboard",
+            "ip": get_host_ip(),
+            "extra": {"name": "Keyboard"}
+        }
+        visualizer_instance.update_controller("keyboard", keyboard_info)
     
     # Track controllers and their status
     controllers = {}
@@ -144,6 +185,19 @@ def main():
                         register_controllers({i: joystick})
                         send_controller_status(f"{CONTROLLER_ID}_{i}",
                                                "active")
+                        
+                        # Update visualizer if running
+                        if visualizer_instance:
+                            controller_info = {
+                                "id": f"{CONTROLLER_ID}_{i}",
+                                "ip": get_host_ip(),
+                                "extra": {
+                                    "name": joystick.get_name(),
+                                    "joystick_id": i
+                                }
+                            }
+                            visualizer_instance.update_controller(
+                                f"{CONTROLLER_ID}_{i}", controller_info)
                 
                 # Check for disconnected controllers
                 for i in list(controllers.keys()):
@@ -151,6 +205,10 @@ def main():
                         print(f"Controller {i} disconnected")
                         send_controller_status(f"{CONTROLLER_ID}_{i}",
                                                "inactive")
+                        # Update visualizer if running
+                        if visualizer_instance:
+                            visualizer_instance.remove_controller(
+                                f"{CONTROLLER_ID}_{i}")
                         del controllers[i]
                 
                 # Re-register all active controllers periodically
@@ -180,15 +238,26 @@ def main():
                 status = 'pressed' if pressed else 'released'
                 print(f"Controller {joy_id} Button {button_name} {status}")
                 # Use unique controller_id for each controller
+                controller_id = f"{CONTROLLER_ID}_{joy_id}"
                 try:
                     requests.post(
                         f"{GAME_SERVER_URL}/api/answer",
                         json={
-                            "controller_id": f"{CONTROLLER_ID}_{joy_id}",
+                            "controller_id": controller_id,
                             "answer": f"button_{button}" if pressed else None
                         },
                         timeout=0.5
                     )
+                    
+                    # Update visualizer if running
+                    if visualizer_instance:
+                        if pressed:
+                            visualizer_instance.button_pressed(
+                                controller_id, button, button_name)
+                        else:
+                            visualizer_instance.button_released(
+                                controller_id, button, button_name)
+                                
                 except requests.RequestException as e:
                     print(f"Failed to send input: {e}")
         time.sleep(0.01)

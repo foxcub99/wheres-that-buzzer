@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controller Visualizer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .controllers-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+        }
+        
+        .controller-card {
+            background: #2a2a2a;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            min-width: 300px;
+            text-align: center;
+        }
+        
+        .controller-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #4CAF50;
+        }
+        
+        .controller-info {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 20px;
+        }
+        
+        .controller-svg {
+            width: 100%;
+            max-width: 600px;
+            height: auto;
+        }
+        
+        .no-controllers {
+            text-align: center;
+            color: #888;
+            font-size: 18px;
+            margin-top: 50px;
+        }
+        
+        /* Button press animation */
+        .button-pressed {
+            filter: brightness(1.5) drop-shadow(0 0 10px currentColor);
+            transform: scale(1.1);
+            transition: all 0.1s ease;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-active {
+            background-color: #4CAF50;
+        }
+        
+        .status-inactive {
+            background-color: #f44336;
+        }
+        
+        .last-input {
+            font-size: 14px;
+            color: #FFD700;
+            margin-top: 10px;
+            min-height: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎮 Controller Visualizer</h1>
+        <p>Real-time visualization of connected game controllers</p>
+    </div>
+    
+    <div id="controllers-container" class="controllers-container">
+        <div class="no-controllers">
+            No controllers connected. Run controller_client.py to see controllers here.
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+        
+        let controllers = {};
+        let buttonStates = {};
+        
+        // Controller type to SVG file mapping
+        const controllerSVGs = {
+            'xbox': '/static/images/xbox_controller.svg',
+            'ps': '/static/images/ps_controller.svg',
+            'keyboard': '/static/images/keyboard.svg'
+        };
+        
+        // Button ID to SVG element ID mapping for different controller types
+        const buttonMappings = {
+            xbox: {
+                0: 'button_A',
+                1: 'button_B', 
+                2: 'button_X',
+                3: 'button_Y',
+                11: 'dpad_up',
+                12: 'dpad_down',
+                13: 'dpad_left',
+                14: 'dpad_right'
+            },
+            ps: {
+                0: 'button_x',
+                1: 'button_circle',
+                2: 'button_square', 
+                3: 'button_triangle',
+                11: 'dpad_up',
+                12: 'dpad_down',
+                13: 'dpad_left',
+                14: 'dpad_right'
+            },
+            keyboard: {
+                // Will be mapped based on key codes
+            }
+        };
+        
+        function getControllerType(controllerInfo) {
+            if (!controllerInfo || !controllerInfo.extra) return 'xbox';
+            
+            const name = controllerInfo.extra.name || '';
+            if (name.includes('Xbox') || name.includes('xbox')) return 'xbox';
+            if (name.includes('DualSense') || name.includes('PlayStation')) return 'ps';
+            if (name === 'Keyboard') return 'keyboard';
+            return 'xbox'; // default
+        }
+        
+        function createControllerCard(controllerId, controllerInfo) {
+            const controllerType = getControllerType(controllerInfo);
+            const svgFile = controllerSVGs[controllerType] || controllerSVGs.xbox;
+            
+            return `
+                <div class="controller-card" id="controller-${controllerId}">
+                    <div class="controller-title">
+                        <span class="status-indicator status-active"></span>
+                        ${controllerInfo.extra?.name || 'Unknown Controller'}
+                    </div>
+                    <div class="controller-info">
+                        ID: ${controllerId}<br>
+                        IP: ${controllerInfo.ip || 'Unknown'}
+                    </div>
+                    <div class="last-input" id="last-input-${controllerId}">
+                        Waiting for input...
+                    </div>
+                    <div class="controller-svg-container" id="svg-container-${controllerId}">
+                        Loading controller...
+                    </div>
+                </div>
+            `;
+        }
+        
+        async function loadControllerSVG(controllerId, controllerInfo) {
+            const controllerType = getControllerType(controllerInfo);
+            const svgFile = controllerSVGs[controllerType] || controllerSVGs.xbox;
+            
+            try {
+                const response = await fetch(svgFile);
+                const svgText = await response.text();
+                
+                const container = document.getElementById(`svg-container-${controllerId}`);
+                if (container) {
+                    container.innerHTML = svgText;
+                    
+                    // Add controller-svg class to the SVG
+                    const svg = container.querySelector('svg');
+                    if (svg) {
+                        svg.classList.add('controller-svg');
+                        svg.id = `svg-${controllerId}`;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading SVG:', error);
+                const container = document.getElementById(`svg-container-${controllerId}`);
+                if (container) {
+                    container.innerHTML = '<p>Error loading controller image</p>';
+                }
+            }
+        }
+        
+        function updateControllerDisplay() {
+            const container = document.getElementById('controllers-container');
+            
+            if (Object.keys(controllers).length === 0) {
+                container.innerHTML = `
+                    <div class="no-controllers">
+                        No controllers connected. Run controller_client.py to see controllers here.
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = '';
+            
+            for (const [controllerId, controllerInfo] of Object.entries(controllers)) {
+                const cardHTML = createControllerCard(controllerId, controllerInfo);
+                container.innerHTML += cardHTML;
+            }
+            
+            // Load SVGs after DOM is updated
+            for (const [controllerId, controllerInfo] of Object.entries(controllers)) {
+                loadControllerSVG(controllerId, controllerInfo);
+            }
+        }
+        
+        function animateButton(controllerId, buttonId, buttonName, pressed) {
+            const controllerInfo = controllers[controllerId];
+            if (!controllerInfo) return;
+            
+            const controllerType = getControllerType(controllerInfo);
+            const svg = document.getElementById(`svg-${controllerId}`);
+            
+            if (!svg) return;
+            
+            let elementId = buttonId;
+            
+            // Map button ID to SVG element ID
+            if (controllerType === 'keyboard') {
+                // For keyboard, use the key name directly
+                elementId = buttonName || buttonId;
+            } else {
+                const mapping = buttonMappings[controllerType];
+                if (mapping && mapping[buttonId]) {
+                    elementId = mapping[buttonId];
+                } else {
+                    // Fallback: try to find element with button_ prefix
+                    elementId = `button_${buttonId}`;
+                }
+            }
+            
+            const element = svg.getElementById(elementId) || svg.querySelector(`[id="${elementId}"]`);
+            
+            if (element) {
+                if (pressed) {
+                    element.classList.add('button-pressed');
+                } else {
+                    element.classList.remove('button-pressed');
+                }
+            }
+            
+            // Update last input display
+            const lastInputElement = document.getElementById(`last-input-${controllerId}`);
+            if (lastInputElement) {
+                const action = pressed ? 'Pressed' : 'Released';
+                const displayName = buttonName || `Button ${buttonId}`;
+                lastInputElement.textContent = `${action}: ${displayName}`;
+                
+                // Clear the message after 3 seconds if button was released
+                if (!pressed) {
+                    setTimeout(() => {
+                        if (lastInputElement.textContent === `${action}: ${displayName}`) {
+                            lastInputElement.textContent = 'Waiting for input...';
+                        }
+                    }, 3000);
+                }
+            }
+        }
+        
+        // Socket event handlers
+        socket.on('connect', () => {
+            console.log('Connected to controller visualizer');
+        });
+        
+        socket.on('controllers_update', (data) => {
+            console.log('Controllers update:', data);
+            controllers = data.controllers || {};
+            buttonStates = data.button_states || {};
+            updateControllerDisplay();
+        });
+        
+        socket.on('controller_connected', (data) => {
+            console.log('Controller connected:', data);
+            controllers[data.controller_id] = data.controller_info;
+            updateControllerDisplay();
+        });
+        
+        socket.on('controller_disconnected', (data) => {
+            console.log('Controller disconnected:', data);
+            delete controllers[data.controller_id];
+            delete buttonStates[data.controller_id];
+            updateControllerDisplay();
+        });
+        
+        socket.on('button_press', (data) => {
+            console.log('Button press:', data);
+            const { controller_id, button_id, button_name, pressed } = data;
+            
+            if (!buttonStates[controller_id]) {
+                buttonStates[controller_id] = {};
+            }
+            buttonStates[controller_id][button_id] = pressed;
+            
+            animateButton(controller_id, button_id, button_name, pressed);
+        });
+        
+        // Initialize
+        updateControllerDisplay();
+    </script>
+</body>
+</html>
